@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rafadows 93 - Terminal Game Creator & RafaScript OS</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=VT323&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #004e64;
+            font-family: 'MS Sans Serif', Tahoma, sans-serif;
+            user-select: none;
+            overflow: hidden;
+        }
+
+        /* Windows 93 classic window bevels */
+        .win93-window {
+            background: #c0c0c0;
+            border-top: 2px solid #ffffff;
+            border-left: 2px solid #ffffff;
+            border-right: 2px solid #404040;
+            border-bottom: 2px solid #404040;
+            box-shadow: 2px 2px 0px #000000;
+        }
+
+        /* Classic Titlebar Gradient for Rafadows (Deep Blue & Teal) */
+        .win93-titlebar {
+            background: linear-gradient(90deg, #002b3d, #008080);
+            color: white;
+            font-weight: bold;
+            padding: 3px 6px;
+            font-size: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        .win93-titlebar.inactive {
+            background: linear-gradient(90deg, #707070, #a0a0a0);
+            color: #d0d0d0;
+        }
+
+        /* Classic 3D Buttons */
+        .win93-button {
+            background: #c0c0c0;
+            border-top: 1px solid #ffffff;
+            border-left: 1px solid #ffffff;
+            border-right: 1px solid #404040;
+            border-bottom: 1px solid #404040;
+            box-shadow: inset 1px 1px #dfdfdf, inset -1px -1px #808080;
+            padding: 2px 10px;
+            font-size: 11px;
+            cursor: pointer;
+            font-family: 'MS Sans Serif', Tahoma, sans-serif;
+        }
+        .win93-button:active {
+            border-top: 1px solid #404040;
+            border-left: 1px solid #404040;
+            border-right: 1px solid #ffffff;
+            border-bottom: 1px solid #ffffff;
+            box-shadow: inset 1px 1px #808080;
+            padding: 3px 9px 1px 11px;
+        }
+
+        /* Inset container fields */
+        .win93-inset {
+            background: #ffffff;
+            border-top: 2px solid #808080;
+            border-left: 2px solid #808080;
+            border-right: 2px solid #ffffff;
+            border-bottom: 2px solid #ffffff;
+        }
+
+        /* Scrollbars retro */
+        ::-webkit-scrollbar {
+            width: 16px;
+            background: #c0c0c0;
+            border-left: 1px solid #808080;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #c0c0c0;
+            border-top: 1px solid #ffffff;
+            border-left: 1px solid #ffffff;
+            border-right: 1px solid #404040;
+            border-bottom: 1px solid #404040;
+            box-shadow: inset 1px 1px #dfdfdf, inset -1px -1px #808080;
+        }
+
+        .crt-scanlines::after {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.12) 50%);
+            background-size: 100% 4px;
+            z-index: 999;
+            pointer-events: none;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body class="h-screen w-screen flex flex-col justify-between crt-scanlines overflow-hidden">
+
+    <div id="desktop" class="flex-1 relative p-4 flex flex-col flex-wrap gap-6 items-start content-start overflow-hidden">
+        
+        <!-- Desktop Icon: Terminal & Game Studio -->
+        <div ondblclick="openWindow('studioWindow')" onclick="selectIcon(this)" class="desktop-icon flex flex-col items-center cursor-pointer group w-24 text-center p-1 border border-transparent hover:border-white/40 hover:bg-white/10 rounded">
+            <div class="w-12 h-12 bg-[#c0c0c0] win93-window flex items-center justify-center text-xl font-extrabold text-cyan-900 shadow">
+                🕹️
+            </div>
+            <span class="text-white text-xs mt-1 drop-shadow-[0_1px_1px_rgba(0,0,0,0.9)] px-1 group-hover:bg-cyan-900">RafaStudio 93</span>
+        </div>
+
+        <!-- Desktop Icon: RafaScript Manual / Docs -->
+        <div ondblclick="openWindow('docsWindow')" onclick="selectIcon(this)" class="desktop-icon flex flex-col items-center cursor-pointer group w-24 text-center p-1 border border-transparent hover:border-white/40 hover:bg-white/10 rounded">
+            <div class="w-12 h-12 bg-[#c0c0c0] win93-window flex items-center justify-center text-lg font-bold text-amber-900 shadow">
+                📜
+            </div>
+            <span class="text-white text-xs mt-1 drop-shadow-[0_1px_1px_rgba(0,0,0,0.9)] px-1 group-hover:bg-cyan-900">RafaScript Manual</span>
+        </div>
+
+        <!-- Desktop Icon: File Explorer / Game Library -->
+        <div ondblclick="openWindow('explorerWindow')" onclick="selectIcon(this)" class="desktop-icon flex flex-col items-center cursor-pointer group w-24 text-center p-1 border border-transparent hover:border-white/40 hover:bg-white/10 rounded">
+            <div class="w-12 h-12 bg-[#c0c0c0] win93-window flex items-center justify-center text-lg font-bold text-blue-900 shadow">
+                📁
+            </div>
+            <span class="text-white text-xs mt-1 drop-shadow-[0_1px_1px_rgba(0,0,0,0.9)] px-1 group-hover:bg-cyan-900">C:\Jogos</span>
+        </div>
+
+        <!-- Desktop Icon: About Rafadows -->
+        <div ondblclick="openWindow('aboutWindow')" onclick="selectIcon(this)" class="desktop-icon flex flex-col items-center cursor-pointer group w-24 text-center p-1 border border-transparent hover:border-white/40 hover:bg-white/10 rounded">
+            <div class="w-12 h-12 bg-[#c0c0c0] win93-window flex items-center justify-center text-lg font-bold text-purple-900 shadow">
+                🌐
+            </div>
+            <span class="text-white text-xs mt-1 drop-shadow-[0_1px_1px_rgba(0,0,0,0.9)] px-1 group-hover:bg-cyan-900">Sobre Rafadows</span>
+        </div>
+
+
+        <div id="studioWindow" class="app-window absolute top-6 left-12 w-[680px] win93-window flex flex-col z-20 shadow-2xl" onmousedown="bringToFront('studioWindow')">
+            <div class="win93-titlebar flex justify-between items-center cursor-move" onmousedown="startDrag(event, 'studioWindow')">
+                <div class="flex items-center gap-1.5">
+                    <span>🕹️ RafaStudio 93 - Terminal Game Maker (RafaScript v1.0)</span>
+                </div>
+                <div class="flex gap-1">
+                    <button class="win93-button text-xs px-1.5 py-0 font-bold" onclick="minimizeWindow('studioWindow')">_</button>
+                    <button class="win93-button text-xs px-1.5 py-0 font-bold" onclick="maximizeWindow('studioWindow')">🗖</button>
+                    <button class="win93-button text-xs px-1.5 py-0 font-bold text-red-900" onclick="closeWindow('studioWindow')">✕</button>
+                </div>
+            </div>
+            <!-- Menu bar -->
+            <div class="bg-[#c0c0c0] px-2 py-0.5 text-xs border-b border-gray-400 flex gap-4">
+                <span class="cursor-pointer hover:bg-cyan-900 hover:text-white px-1"><u>F</u>icheiro</span>
+                <span class="cursor-pointer hover:bg-cyan-900 hover:text-white px-1"><u>E</u>ditar</span>
+                <span class="cursor-pointer hover:bg-cyan-900 hover:text-white px-1 font-bold text-cyan-900" onclick="runRafaScriptCode()"><u>▶</u> Executar Jogo</span>
+                <span class="cursor-pointer hover:bg-cyan-900 hover:text-white px-1" onclick="openWindow('docsWindow')"><u>A</u>juda RafaScript</span>
+            </div>
+            <!-- Template buttons toolbar -->
+            <div class="bg-[#c0c0c0] px-2 py-1 flex items-center gap-1.5 border-b border-gray-500 text-xs">
+                <span>Exemplos Prontos:</span>
+                <button class="win93-button font-bold text-cyan-900" onclick="loadTemplate('clicker')">🖱️ Clicker Game</button>
+                <button class="win93-button font-bold text-purple-900" onclick="loadTemplate('quiz')">❓ Quiz Aventura</button>
+                <button class="win93-button font-bold text-emerald-900" onclick="loadTemplate('snake')">🐍 Retro Snake</button>
+                <div class="h-4 w-[1px] bg-gray-500 mx-1"></div>
+                <button class="win93-button bg-gray-200 text-black font-bold" onclick="runRafaScriptCode()">▶ Compilar e Rodar</button>
+            </div>
+            <!-- Split Workspace: Editor (left) & Terminal Game Output (right) -->
+            <div class="p-2 bg-[#c0c0c0] grid grid-cols-2 gap-2 h-96">
+                <!-- Left: Code Editor -->
+                <div class="flex flex-col gap-1 h-full">
+                    <div class="text-[11px] font-bold text-gray-800">Editor RafaScript (.rql):</div>
+                    <div class="win93-inset p-2 font-mono text-xs text-slate-900 flex-1 overflow-y-auto bg-white flex">
+                        <textarea id="rafaCodeInput" spellcheck="false" class="w-full h-full bg-transparent outline-none resize-none font-mono text-xs leading-relaxed text-slate-900"># RafaScript Jogo Exemplo (Clicker Quest)
+PRINT "=== BEM-VINDO AO RAFADOWS 93 ==="
+PRINT "Clica no botao para ganhar pontos!"
+VAR pontos = 0
+VAR nivel = 1
+
+INPUT "Qual e o teu nome, Jogador? " nome
+PRINT "Ola, " + nome + "! Vamos comecar."
+
+LABEL game_loop
+PRINT "Pontos atuais: " + pontos
+INPUT "Pressiona [C] para clicar ou [Q] para sair: " acao
+
+IF acao == "C" OR acao == "c" THEN
+    SET pontos = pontos + 10
+    PRINT "+10 Pontos ganhos!"
+ENDIF
+
+IF acao == "Q" OR acao == "q" THEN
+    PRINT "A sair do jogo... Adeus!"
+    END
+ENDIF
+
+GOTO game_loop</textarea>
+                    </div>
+                </div>
+
+                <!-- Right: Terminal Output & Game Runtime -->
+                <div class="flex flex-col gap-1 h-full">
+                    <div class="text-[11px] font-bold text-gray-800 flex justify-between items-center">
+                        <span>Terminal Virtual (Rafadows OS)</span>
+                        <button class="win93-button text-[10px] px-2 py-0" onclick="clearTerminal()">Limpar</button>
+                    </div>
+                    <div id="terminalScreen" class="win93-inset bg-black text-green-400 font-mono text-xs p-3 flex-1 overflow-y-auto flex flex-col justify-between">
+                        <div id="terminalOutput" class="space-y-1">
+                            Rafadows Terminal [Versão 1.0.93]<br>
+                            Type 'RUN' or click '▶ Compilar e Rodar' to start your game.<br><br>
+                        </div>
+                        <div id="terminalInputArea" class="hidden items-center gap-2 pt-2 border-t border-green-900">
+                            <span id="terminalPrompt" class="text-yellow-300">?</span>
+                            <input type="text" id="terminalInput" class="bg-transparent text-green-300 font-mono text-xs outline-none flex-1" autofocus onkeydown="handleTerminalInput(event)">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div id="docsWindow" class="app-window absolute top-16 left-32 w-[540px] win93-window hidden flex-col z-30 shadow-2xl" onmousedown="bringToFront('docsWindow')">
+            <div class="win93-titlebar flex justify-between items-center cursor-move" onmousedown="startDrag(event, 'docsWindow')">
+                <div class="flex items-center gap-1.5">
+                    <span>📜 Manual Oficial - RafaScript (Linguagem RQL)</span>
+                </div>
+                <div class="flex gap-1">
+                    <button class="win93-button text-xs px-1.5 py-0 font-bold" onclick="minimizeWindow('docsWindow')">_</button>
+                    <button class="win93-button text-xs px-1.5 py-0 font-bold text-red-900" onclick="closeWindow('docsWindow')">✕</button>
+                </div>
+            </div>
+            <div class="p-3 bg-[#c0c0c0] text-xs flex flex-col gap-3 h-80 overflow-y-auto font-sans">
+                <div class="bg-white win93-inset p-3 space-y-2 text-slate-800 leading-relaxed">
+                    <h3 class="font-bold text-sm text-cyan-900">Guia de Iniciação rápida ao RafaScript (RQL)</h3>
+                    <p>O <b>RafaScript</b> foi inventado no Rafadows 93 para permitir a criação instantânea de jogos de texto e lógica diretamente no terminal sem complexidade de compilação avançada.</p>
+                    
+                    <h4 class="font-bold text-cyan-900 mt-2">Comandos Principais:</h4>
+                    <ul class="list-disc pl-5 space-y-1 font-mono text-[11px]">
+                        <li><b>PRINT "texto"</b> : Escreve uma mensagem no terminal.</li>
+                        <li><b>VAR nome = valor</b> : Declara uma variável (número ou texto).</li>
+                        <li><b>SET nome = novo_valor</b> : Altera o valor de uma variável.</li>
+                        <li><b>INPUT "pergunta" var_destino</b> : Pede input ao jogador e guarda na variável.</li>
+                        <li><b>LABEL nome_label</b> : Cria um ponto de salto (ancoragem).</li>
+                        <li><b>GOTO nome_label</b> : Salta diretamente para uma label.</li>
+                        <li><b>IF condicao THEN ... ENDIF</b> : Executa bloco condicional (ex: <i>IF pontos > 10 THEN ...</i>).</li>
+                        <li><b>END</b> : Termina a execução do jogo.</li>
+                    </ul>
+                </div>
+                <div class="flex justify-end">
+                    <button class="win93-button px-4 font-bold" onclick="closeWindow('docsWindow')">Fechar Manual</button>
+                </div>
+            </div>
+        </div>
+
+
+        <div id="explorerWindow" class="app-window absolute top-20 left-44 w-[480px] win93-window hidden flex-col z-20 shadow-2xl" onmousedown="bringToFront('explorerWindow')">
+            <div class="win93-titlebar flex justify-between items-center cursor-move" onmousedown="startDrag(event, 'explorerWindow')">
+                <div class="flex items-center gap-1.5">
+                    <span>📁 C:\Jogos RafaScript</span>
+                </div>
+                <div class="flex gap-1">
+                    <button class="win93-button text-xs px-1.5 py-0 font-bold" onclick="minimizeWindow('explorerWindow')">_</button>
+                    <button class="win93-button text-xs px-1.5 py-0 font-bold text-red-900" onclick="closeWindow('explorerWindow')">✕</button>
+                </div>
+            </div>
+            <!-- Address Bar -->
+            <div class="bg-[#c0c0c0] px-2 py-1 flex items-center gap-2 border-b border-gray-400 text-xs">
+                <span>Local:</span>
+                <input type="text" value="C:\Jogos\RafaScript" class="win93-inset px-2 py-0.5 flex-1 font-mono text-xs outline-none bg-white" readonly>
+            </div>
+            <!-- Files Grid -->
+            <div class="p-3 bg-[#c0c0c0] h-60">
+                <div class="win93-inset w-full h-full bg-white p-3 grid grid-cols-3 gap-3 overflow-y-auto text-xs font-sans">
+                    <div ondblclick="loadTemplate('clicker'); openWindow('studioWindow');" class="flex flex-col items-center p-2 hover:bg-cyan-100 cursor-pointer rounded border border-transparent hover:border-cyan-400">
+                        <span class="text-3xl">🖱️</span>
+                        <span class="mt-1 font-bold">clicker.rql</span>
+                        <span class="text-[10px] text-gray-500">1.2 KB Jogo</span>
+                    </div>
+                    <div ondblclick="loadTemplate('quiz'); openWindow('studioWindow');" class="flex flex-col items-center p-2 hover:bg-cyan-100 cursor-pointer rounded border border-transparent hover:border-cyan-400">
+                        <span class="text-3xl">❓</span>
+                        <span class="mt-1 font-bold">aventura.rql</span>
+                        <span class="text-[10px] text-gray-500">2.1 KB Jogo</span>
+                    </div>
+                    <div ondblclick="loadTemplate('snake'); openWindow('studioWindow');" class="flex flex-col items-center p-2 hover:bg-cyan-100 cursor-pointer rounded border border-transparent hover:border-cyan-400">
+                        <span class="text-3xl">🐍</span>
+                        <span class="mt-1 font-bold">retro_snake.rql</span>
+                        <span class="text-[10px] text-gray-500">1.8 KB Jogo</span>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-[#c0c0c0] px-2 py-1 text-xs border-t border-gray-400 text-gray-700">
+                3 jogos encontrados no disco virtual.
+            </div>
+        </div>
+
+
+        <div id="aboutWindow" class="app-window absolute top-28 left-64 w-[380px] win93-window hidden flex-col z-30 shadow-2xl" onmousedown="bringToFront('aboutWindow')">
+            <div class="win93-titlebar flex justify-between items-center cursor-move" onmousedown="startDrag(event, 'aboutWindow')">
+                <div class="flex items-center gap-1.5">
+                    <span>Sobre o Rafadows 93 OS</span>
+                </div>
+                <div class="flex gap-1">
+                    <button class="win93-button text-xs px-1.5 py-0 font-bold text-red-900" onclick="closeWindow('aboutWindow')">✕</button>
+                </div>
+            </div>
+            <div class="p-4 bg-[#c0c0c0] flex flex-col gap-4 text-xs">
+                <div class="flex items-center gap-4">
+                    <div class="w-14 h-14 bg-[#c0c0c0] win93-window flex items-center justify-center text-3xl font-extrabold text-cyan-900">
+                        🕹️
+                    </div>
+                    <div>
+                        <p class="font-bold text-sm">Rafadows 93 (Terminal Gaming Edition)</p>
+                        <p class="text-gray-700">Versão 1.0 (Build 93.2026)</p>
+                        <p class="text-gray-600 mt-1">Criado para programar jogos divertidos em RafaScript.</p>
+                    </div>
+                </div>
+                <div class="win93-inset p-2 bg-white font-mono text-[11px] h-20 overflow-y-auto text-gray-800">
+                    Sistema Operativo retro de simulação web com suporte a scripts de terminal interactivos.
+                </div>
+                <div class="flex justify-end">
+                    <button class="win93-button px-4 font-bold" onclick="closeWindow('aboutWindow')">OK</button>
+                </div>
+            </div>
+        </div>
+
+
+        <div id="startMenu" class="absolute bottom-10 left-1 w-64 win93-window hidden flex-col z-50 shadow-2xl bg-[#c0c0c0]">
+            <div class="bg-gradient-to-t from-cyan-900 to-teal-800 bg-[#004e64] text-white p-2 flex items-center gap-3 font-bold text-sm border-b border-black">
+                <span class="text-xl text-cyan-200 font-extrabold">🕹️</span>
+                <span>Rafadows<br><span class="text-xs text-yellow-300 font-normal">93 Game OS</span></span>
+            </div>
+            <div class="p-1 flex flex-col gap-0.5 text-xs">
+                <div onclick="openWindow('studioWindow'); toggleStartMenu();" class="flex items-center gap-2 px-2 py-1.5 hover:bg-cyan-900 hover:text-white cursor-pointer font-bold">
+                    <span>🕹️</span> RafaStudio 93 (Game Maker)
+                </div>
+                <div onclick="openWindow('docsWindow'); toggleStartMenu();" class="flex items-center gap-2 px-2 py-1.5 hover:bg-cyan-900 hover:text-white cursor-pointer">
+                    <span>📜 Manual RafaScript</span>
+                </div>
+                <div onclick="openWindow('explorerWindow'); toggleStartMenu();" class="flex items-center gap-2 px-2 py-1.5 hover:bg-cyan-900 hover:text-white cursor-pointer">
+                    <span>📁 Explorador de Jogos</span>
+                </div>
+                <div onclick="openWindow('aboutWindow'); toggleStartMenu();" class="flex items-center gap-2 px-2 py-1.5 hover:bg-cyan-900 hover:text-white cursor-pointer">
+                    <span>🌐 Sobre o Rafadows</span>
+                </div>
+                <div class="h-[1px] bg-gray-500 my-1"></div>
+                <div onclick="triggerRestart()" class="flex items-center gap-2 px-2 py-1.5 hover:bg-cyan-900 hover:text-white cursor-pointer">
+                    <span>🔄 Reiniciar Sistema...</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+
+    <div class="taskbar h-10 px-2 flex items-center justify-between z-50 bg-[#c0c0c0] border-t-2 border-white shadow-md">
+        <div class="flex items-center gap-2">
+            <button id="startButton" onclick="toggleStartMenu()" class="win93-button flex items-center gap-1.5 font-bold py-1.5 px-3 bg-[#c0c0c0]">
+                <span class="text-cyan-800 font-extrabold text-base">🕹️</span> Iniciar
+            </button>
+            <div class="h-6 w-[1px] bg-gray-500 mx-0.5"></div>
+            <div class="flex items-center gap-1" id="taskbarApps">
+                <button onclick="toggleWindow('studioWindow')" class="win93-button text-xs px-3 py-1 flex items-center gap-1 truncate max-w-[140px]">
+                    🕹️ RafaStudio
+                </button>
+            </div>
+        </div>
+
+        <div class="win93-inset px-2.5 py-1 text-xs font-mono flex items-center gap-3 bg-[#c0c0c0] border-t-2 border-l-2 border-gray-600">
+            <span title="RafaScript Engine Active" class="cursor-pointer text-cyan-900 font-bold">⚡ RQL Engine</span>
+            <span id="clock">08:09</span>
+        </div>
+    </div>
+
+
+    <script>
+        let highestZIndex = 40;
+
+        function bringToFront(id) {
+            const win = document.getElementById(id);
+            highestZIndex++;
+            win.style.zIndex = highestZIndex;
+            
+            document.querySelectorAll('.app-window').forEach(w => {
+                const tb = w.querySelector('.win93-titlebar');
+                if (tb) tb.classList.add('inactive');
+            });
+            const currentTb = win.querySelector('.win93-titlebar');
+            if (currentTb) currentTb.classList.remove('inactive');
+        }
+
+        function openWindow(id) {
+            const win = document.getElementById(id);
+            win.classList.remove('hidden');
+            bringToFront(id);
+            document.getElementById('startMenu').classList.add('hidden');
+        }
+
+        function closeWindow(id) {
+            document.getElementById(id).classList.add('hidden');
+        }
+
+        function minimizeWindow(id) {
+            document.getElementById(id).classList.add('hidden');
+        }
+
+        function maximizeWindow(id) {
+            const win = document.getElementById(id);
+            if (win.style.width === '100vw') {
+                win.style.width = '680px';
+                win.style.height = 'auto';
+                win.style.top = '24px';
+                win.style.left = '48px';
+            } else {
+                win.style.width = '100vw';
+                win.style.height = 'calc(100vh - 40px)';
+                win.style.top = '0px';
+                win.style.left = '0px';
+            }
+        }
+
+        function toggleWindow(id) {
+            const win = document.getElementById(id);
+            if (win.classList.contains('hidden')) {
+                openWindow(id);
+            } else {
+                minimizeWindow(id);
+            }
+        }
+
+        function toggleStartMenu() {
+            const menu = document.getElementById('startMenu');
+            menu.classList.toggle('hidden');
+        }
+
+        window.addEventListener('click', (e) => {
+            const menu = document.getElementById('startMenu');
+            const startBtn = document.getElementById('startButton');
+            if (!menu.contains(e.target) && !startBtn.contains(e.target) && !menu.classList.contains('hidden')) {
+                menu.classList.add('hidden');
+            }
+        });
+
+        let draggingWindow = null;
+        let startX = 0, startY = 0;
+        let initialLeft = 0, initialTop = 0;
+
+        function startDrag(e, id) {
+            if (e.target.tagName === 'BUTTON') return;
+            draggingWindow = document.getElementById(id);
+            bringToFront(id);
+            startX = e.clientX;
+            startY = e.clientY;
+            initialLeft = draggingWindow.offsetLeft;
+            initialTop = draggingWindow.offsetTop;
+
+            document.addEventListener('mousemove', onDrag);
+            document.addEventListener('mouseup', stopDrag);
+        }
+
+        function onDrag(e) {
+            if (!draggingWindow) return;
+            const dx = e.clientX - startX;
+            const dy = e.clientY - startY;
+            draggingWindow.style.left = `${initialLeft + dx}px`;
+            draggingWindow.style.top = `${initialTop + dy}px`;
+        }
+
+        function stopDrag() {
+            draggingWindow = null;
+            document.removeEventListener('mousemove', onDrag);
+            document.removeEventListener('mouseup', stopDrag);
+        }
+
+        function selectIcon(el) {
+            document.querySelectorAll('.desktop-icon').forEach(icon => {
+                icon.classList.remove('bg-cyan-900/40', 'border-white/60');
+            });
+            el.classList.add('bg-cyan-900/40', 'border-white/60');
+        }
+
+        // --- RAFA SCRIPT INTERPRETER & GAME RUNTIME ---
+        let scriptVariables = {};
+        let scriptLabels = {};
+        let scriptLines = [];
+        let currentLineIndex = 0;
+        let waitingForInputVar = null;
+        let isGameRunning = false;
+
+        function clearTerminal() {
+            document.getElementById('terminalOutput').innerHTML = 'Terminal limpo.<br>';
+            document.getElementById('terminalInputArea').classList.add('hidden');
+            isGameRunning = false;
+        }
+
+        function runRafaScriptCode() {
+            const code = document.getElementById('rafaCodeInput').value;
+            const output = document.getElementById('terminalOutput');
+            output.innerHTML = '<span class="text-yellow-300">> Compilando RafaScript (RQL v1.0)...</span><br>';
+            
+            scriptVariables = {};
+            scriptLabels = {};
+            scriptLines = code.split('\n').map(l => l.trim());
+            
+            // Pass 1: Find all labels
+            for (let i = 0; i < scriptLines.length; i++) {
+                let line = scriptLines[i];
+                if (line.startsWith('LABEL ')) {
+                    let labelName = line.substring(6).trim();
+                    scriptLabels[labelName] = i;
+                }
+            }
+
+            currentLineIndex = 0;
+            isGameRunning = true;
+            output.innerHTML += '<span class="text-green-300">> Jogo iniciado com sucesso!</span><br><br>';
+            executeRafaScriptSteps();
+        }
+
+        function executeRafaScriptSteps() {
+            if (!isGameRunning) return;
+            const output = document.getElementById('terminalOutput');
+            const inputArea = document.getElementById('terminalInputArea');
+
+            while (currentLineIndex < scriptLines.length) {
+                let rawLine = scriptLines[currentLineIndex];
+                currentLineIndex++;
+
+                if (!rawLine || rawLine.startsWith('#')) continue; // Skip empty lines and comments
+
+                // Parse PRINT command
+                if (rawLine.startsWith('PRINT ')) {
+                    let expr = rawLine.substring(6).trim();
+                    let val = evaluateExpression(expr);
+                    output.innerHTML += val + '<br>';
+                    output.parentElement.scrollTop = output.parentElement.scrollHeight;
+                }
+                // Parse VAR command
+                else if (rawLine.startsWith('VAR ')) {
+                    let parts = rawLine.substring(4).split('=');
+                    let varName = parts[0].trim();
+                    let varVal = evaluateExpression(parts[1].trim());
+                    scriptVariables[varName] = isNaN(varVal) ? varVal : Number(varVal);
+                }
+                // Parse SET command
+                else if (rawLine.startsWith('SET ')) {
+                    let parts = rawLine.substring(4).split('=');
+                    let varName = parts[0].trim();
+                    let varVal = evaluateExpression(parts[1].trim());
+                    scriptVariables[varName] = isNaN(varVal) ? varVal : Number(varVal);
+                }
+                // Parse INPUT command
+                else if (rawLine.startsWith('INPUT ')) {
+                    let rest = rawLine.substring(6).trim();
+                    let firstQuote = rest.indexOf('"');
+                    let secondQuote = rest.indexOf('"', firstQuote + 1);
+                    let promptText = rest.substring(firstQuote + 1, secondQuote);
+                    let varName = rest.substring(secondQuote + 1).trim();
+
+                    output.innerHTML += promptText + '<br>';
+                    output.parentElement.scrollTop = output.parentElement.scrollHeight;
+                    
+                    waitingForInputVar = varName;
+                    document.getElementById('terminalPrompt').innerText = '>';
+                    inputArea.classList.remove('hidden');
+                    inputArea.classList.add('flex');
+                    document.getElementById('terminalInput').focus();
+                    return; // Pause execution until user inputs
+                }
+                // Parse GOTO command
+                else if (rawLine.startsWith('GOTO ')) {
+                    let targetLabel = rawLine.substring(5).trim();
+                    if (scriptLabels[targetLabel] !== undefined) {
+                        currentLineIndex = scriptLabels[targetLabel] + 1;
+                    }
+                }
+                // Parse IF condition THEN
+                else if (rawLine.startsWith('IF ')) {
+                    let thenIdx = rawLine.indexOf('THEN');
+                    if (thenIdx !== -1) {
+                        let condition = rawLine.substring(3, thenIdx).trim();
+                        if (evaluateCondition(condition)) {
+                            // Execute same line remainder or continue
+                            let inlineCmd = rawLine.substring(thenIdx + 4).trim();
+                            if (inlineCmd) {
+                                executeInlineCommand(inlineCmd);
+                            }
+                        } else {
+                            // Skip until corresponding ENDIF
+                            let depth = 1;
+                            while (currentLineIndex < scriptLines.length && depth > 0) {
+                                let l = scriptLines[currentLineIndex];
+                                currentLineIndex++;
+                                if (l.startsWith('IF ')) depth++;
+                                if (l === 'ENDIF') depth--;
+                            }
+                        }
+                    }
+                }
+                // Parse END command
+                else if (rawLine === 'END') {
+                    output.innerHTML += '<br><span class="text-cyan-300">> [Jogo terminado pelo script]</span><br>';
+                    isGameRunning = false;
+                    inputArea.classList.add('hidden');
+                    return;
+                }
+            }
+            isGameRunning = false;
+        }
+
+        function handleTerminalInput(e) {
+            if (e.key === 'Enter' && waitingForInputVar) {
+                const val = document.getElementById('terminalInput').value;
+                document.getElementById('terminalInput').value = '';
+                document.getElementById('terminalOutput').innerHTML += `<span class="text-yellow-300">> ${val}</span><br>`;
+                
+                scriptVariables[waitingForInputVar] = isNaN(val) ? val : Number(val);
+                waitingForInputVar = null;
+                document.getElementById('terminalInputArea').classList.add('hidden');
+                
+                executeRafaScriptSteps();
+            }
+        }
+
+        function evaluateExpression(expr) {
+            // String concatenation or evaluation
+            if (expr.includes('+') && (expr.includes('"') || hasStringVariable(expr))) {
+                let parts = expr.split('+').map(p => p.trim());
+                return parts.map(p => {
+                    if (p.startsWith('"') && p.endsWith('"')) {
+                        return p.substring(1, p.length - 1);
+                    }
+                    return scriptVariables[p] !== undefined ? scriptVariables[p] : p;
+                }).join('');
+            }
+            // Math evaluation
+            try {
+                let cleanExpr = expr.replace(/[a-zA-Z_][a-zA-Z0-9_]*/g, (match) => {
+                    return scriptVariables[match] !== undefined ? scriptVariables[match] : 0;
+                });
+                return eval(cleanExpr);
+            } catch (err) {
+                if (expr.startsWith('"') && expr.endsWith('"')) {
+                    return expr.substring(1, expr.length - 1);
+                }
+                return expr;
+            }
+        }
+
+        function hasStringVariable(expr) {
+            return expr.split('+').some(p => {
+                let v = p.trim();
+                return scriptVariables[v] && typeof scriptVariables[v] === 'string';
+            });
+        }
+
+        function evaluateCondition(cond) {
+            // Simple condition evaluator like: pontos > 10 or acao == "C"
+            let replaced = cond.replace(/[a-zA-Z_][a-zA-Z0-9_]*/g, (match) => {
+                if (scriptVariables[match] !== undefined) {
+                    let val = scriptVariables[match];
+                    return typeof val === 'string' ? `"${val}"` : val;
+                }
+                return match;
+            });
+            try {
+                return eval(replaced);
+            } catch (err) {
+                return false;
+            }
+        }
+
+        function executeInlineCommand(cmd) {
+            if (cmd.startsWith('PRINT ')) {
+                let val = evaluateExpression(cmd.substring(6).trim());
+                document.getElementById('terminalOutput').innerHTML += val + '<br>';
+            } else if (cmd.startsWith('SET ')) {
+                let parts = cmd.substring(4).split('=');
+                let varName = parts[0].trim();
+                let varVal = evaluateExpression(parts[1].trim());
+                scriptVariables[varName] = isNaN(varVal) ? varVal : Number(varVal);
+            }
+        }
+
+        // Templates loader
+        function loadTemplate(type) {
+            const editor = document.getElementById('rafaCodeInput');
+            if (type === 'clicker') {
+                editor.value = `# RafaScript Clicker Quest
+PRINT "=== CLICKER QUEST v1.0 ==="
+VAR gold = 0
+VAR tap_power = 1
+
+LABEL main_menu
+PRINT "Ouro atual: " + gold + " | Poder de clique: " + tap_power
+INPUT "[C] Clicar | [U] Comprar Upgrade (10 Ouro) | [Q] Sair: " choice
+
+IF choice == "C" OR choice == "c" THEN
+    SET gold = gold + tap_power
+    PRINT "Ganhaste +" + tap_power + " de ouro!"
+ENDIF
+
+IF choice == "U" OR choice == "u" THEN
+    IF gold >= 10 THEN
+        SET gold = gold - 10
+        SET tap_power = tap_power + 2
+        PRINT "Upgrade comprado! Poder de clique subiu para " + tap_power
+    ELSE
+        PRINT "Ouro insuficiente! Precisas de 10 de ouro."
+    ENDIF
+ENDIF
+
+IF choice == "Q" OR choice == "q" THEN
+    PRINT "A sair do jogo. Parabéns pelo tesouro!"
+    END
+ENDIF
+
+GOTO main_menu`;
+            } else if (type === 'quiz') {
+                editor.value = `# RafaScript Quiz de Aventura
+PRINT "=== O CASTELO SECRETO DO RAFADOWS ==="
+VAR vidas = 3
+PRINT "Tens " + vidas + " vidas. Responde corretamente!"
+
+LABEL q1
+INPUT "Pergunta 1: Quanto e 5 + 5? (Digita o numero): " resp1
+IF resp1 == 10 THEN
+    PRINT "Correto! Avancaste para a camara seguinte."
+    GOTO q2
+ELSE
+    SET vidas = vidas - 1
+    PRINT "Errado! Vidas restantes: " + vidas
+    IF vidas == 0 THEN
+        PRINT "Game Over! Ficaste sem vidas."
+        END
+    ENDIF
+    GOTO q1
+ENDIF
+
+LABEL q2
+INPUT "Pergunta 2: Qual a linguagem do Rafadows? (rafa/csharp): " resp2
+IF resp2 == "rafa" THEN
+    PRINT "Excelente! Venceu o desafio do Rafadows 93!"
+    END
+ELSE
+    PRINT "Resposta incorreta! Tenta outra vez."
+    GOTO q2
+ENDIF`;
+            } else if (type === 'snake') {
+                editor.value = `# RafaScript Retro Snake Simulator
+PRINT "=== SNAKE TERMINAL v1.0 ==="
+VAR score = 0
+VAR snake_len = 3
+
+LABEL snake_loop
+PRINT "Comprimento da Cobra: " + snake_len + " | Pontos: " + score
+INPUT "Direcao [W=Cima, S=Baixo, A=Esquerda, D=Direita, Q=Sair]: " dir
+
+IF dir == "D" OR dir == "d" THEN
+    SET score = score + 10
+    SET snake_len = snake_len + 1
+    PRINT "A cobra moveu-se para a direita. Maçã comida!"
+ENDIF
+
+IF dir == "W" OR dir == "w" OR dir == "S" OR dir == "s" OR dir == "A" OR dir == "a" THEN
+    SET score = score + 5
+    PRINT "Movimento efetuado com sucesso."
+ENDIF
+
+IF dir == "Q" OR dir == "q" THEN
+    PRINT "Jogo terminado. Pontuação final: " + score
+    END
+ENDIF
+
+GOTO snake_loop`;
+            }
+            runRafaScriptCode();
+        }
+
+        setInterval(() => {
+            const now = new Date();
+            document.getElementById('clock').innerText = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }, 1000);
+    </script>
+</body>
+</html>
